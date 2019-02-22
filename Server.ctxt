@@ -1,0 +1,8 @@
+#BlueJ class context
+comment0.params=
+comment0.target=State\ getState()
+comment1.params=movieName
+comment1.target=int\ getRating(java.lang.String)
+comment2.params=movieName\ rating
+comment2.target=void\ sendRating(java.lang.String,\ int)
+numComments=3
