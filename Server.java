@@ -1,12 +1,131 @@
-
+import java.rmi.registry.Registry;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.Scanner;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.HashMap;
 public class Server implements ServerInterface
 {
     public State state;
+    public HashMap<Integer,Movie> movies;
     public State getState(){
         return state;
     }
+
     public int getRating(String movieName){
         return 0;
     }
+
+    public Server(){
+        movies=new HashMap<Integer,Movie>();
+        try{
+            Scanner sc=new Scanner(new File("J://DistSyst//ml-latest-small//movies.csv"));
+            sc.nextLine();
+            String currentLine;
+            while(sc.hasNext()){
+                currentLine=sc.nextLine();
+                String[] parts=currentLine.split("\"");
+                String id="";
+                String nameAndDate="";
+                String genres="";
+                if(parts.length>1){
+                    if(parts.length>3){
+                        String[] awkward=currentLine.split(",");
+                        id=awkward[0];
+                        nameAndDate=awkward[1];
+                        nameAndDate=nameAndDate.substring(1,nameAndDate.length()-1);
+                        genres=awkward[2];
+                        System.out.println("Problem Film:"+id+"    "+nameAndDate+"   "+genres);
+                    }else{
+                        id=parts[0];
+                        nameAndDate=parts[1];
+
+                        genres=parts[2];
+                        if(genres.length()==0){
+                            System.out.println("problem at movie:"+nameAndDate);
+                            System.out.println(currentLine);
+
+                            genres=genres.substring(1);
+                        }else{
+                            String[] parts2=currentLine.split(",");
+                            //System.out.println(parts2[0]);
+                        }}
+                }else{
+                    String[] normalParts=currentLine.split(",");
+                    id=normalParts[0];
+                    nameAndDate=normalParts[1];
+                    genres=normalParts[2];
+                }
+                //System.out.println("ID:"+id+" nameAdn date:"+nameAndDate+" genres:"+genres);
+                String dateStr="";
+                String name="";
+                if(nameAndDate.substring(nameAndDate.length()-1).equals(" ")){
+                    dateStr=nameAndDate.substring(nameAndDate.length()-6,nameAndDate.length()-2);
+                    //System.out.println("problem sstring");
+                    //System.out.println(dateStr);
+                }else{
+                    String[] nameAndDateSplit=nameAndDate.split("\\(");
+                    dateStr=nameAndDateSplit[nameAndDateSplit.length-1];
+                    dateStr=dateStr.substring(0,dateStr.length()-1);
+                }
+
+                // System.out.println(dateStr);
+                // System.out.println("length:"+dateStr.length());
+                int date=0;
+                try{
+                    date=Integer.parseInt(dateStr);
+
+                    name=nameAndDate.substring(0,nameAndDate.length()-7);
+
+                }catch(NumberFormatException a){
+                    name=nameAndDate;
+                    dateStr="0";
+
+                }
+
+                
+                Movie m=new Movie(name,date,genres);
+                int idInt=0;
+                try{
+                     idInt=Integer.parseInt(id);
+                }catch(NumberFormatException f){
+                    id=id.substring(0,2);
+                    try{
+                         idInt=Integer.parseInt(id);
+                    }catch(NumberFormatException g){
+                        System.out.println("problem line");
+                        System.out.println(currentLine);
+                    }
+                }
+                // String[] firstPart=parts[1].split("(");
+                // System.out.println(parts[1]);
+                movies.put(idInt,m);
+            }
+
+        }catch(FileNotFoundException e){
+            System.out.println("File not found");
+        }
+        System.out.println("Size:"+movies.size());
+    }
+
     public void sendRating(String movieName, int rating){}
+
+    public static void main(String[] args){
+        try{
+            Server obj=new Server();
+            ServerInterface stub = (ServerInterface) UnicastRemoteObject.exportObject(obj, 0);
+
+            // Get registry
+            Registry registry = LocateRegistry.getRegistry("mira2.dur.ac.uk", 37008);
+
+            // Bind the remote object's stub in the registry
+            registry.bind("MovieRating", stub);
+            System.err.println("Server ready");
+        }catch(Exception e) {
+            System.err.println("Server exception: " + e.toString());
+            e.printStackTrace();
+        }
+    }
 }
