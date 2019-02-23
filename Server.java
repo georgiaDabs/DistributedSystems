@@ -18,8 +18,7 @@ public class Server implements ServerInterface
         return 0;
     }
 
-    public Server(){
-        movies=new HashMap<Integer,Movie>();
+    public void initiateMovies(){
         try{
             Scanner sc=new Scanner(new File("J://DistSyst//ml-latest-small//movies.csv"));
             sc.nextLine();
@@ -27,17 +26,19 @@ public class Server implements ServerInterface
             while(sc.hasNext()){
                 currentLine=sc.nextLine();
                 String[] parts=currentLine.split("\"");
+                
                 String id="";
                 String nameAndDate="";
                 String genres="";
                 if(parts.length>1){
+                    //System.out.println(parts[1]);
                     if(parts.length>3){
                         String[] awkward=currentLine.split(",");
                         id=awkward[0];
                         nameAndDate=awkward[1];
                         nameAndDate=nameAndDate.substring(1,nameAndDate.length()-1);
                         genres=awkward[2];
-                        System.out.println("Problem Film:"+id+"    "+nameAndDate+"   "+genres);
+                        //System.out.println("Problem Film:"+id+"    "+nameAndDate+"   "+genres);
                     }else{
                         id=parts[0];
                         nameAndDate=parts[1];
@@ -61,6 +62,7 @@ public class Server implements ServerInterface
                 //System.out.println("ID:"+id+" nameAdn date:"+nameAndDate+" genres:"+genres);
                 String dateStr="";
                 String name="";
+
                 if(nameAndDate.substring(nameAndDate.length()-1).equals(" ")){
                     dateStr=nameAndDate.substring(nameAndDate.length()-6,nameAndDate.length()-2);
                     //System.out.println("problem sstring");
@@ -84,16 +86,16 @@ public class Server implements ServerInterface
                     dateStr="0";
 
                 }
-
-                
+                //System.out.println("ID"+id+"name:"+name+" date:"+date+" genres:"+genres);
                 Movie m=new Movie(name,date,genres);
                 int idInt=0;
                 try{
-                     idInt=Integer.parseInt(id);
+                    idInt=Integer.parseInt(id);
                 }catch(NumberFormatException f){
-                    id=id.substring(0,2);
+                    id=id.substring(0,id.length()-1);
+                    //System.out.println(id);
                     try{
-                         idInt=Integer.parseInt(id);
+                        idInt=Integer.parseInt(id);
                     }catch(NumberFormatException g){
                         System.out.println("problem line");
                         System.out.println(currentLine);
@@ -107,7 +109,40 @@ public class Server implements ServerInterface
         }catch(FileNotFoundException e){
             System.out.println("File not found");
         }
+    }
+
+    public Server(){
+        movies=new HashMap<Integer,Movie>();
+        initiateMovies();
+        System.out.println(movies.get(112818).getName());
+        initiateRatings();
+        for(Movie m:movies.values()){
+            //System.out.println("average:"+m.getAverage());
+        }
         System.out.println("Size:"+movies.size());
+    }
+
+    public void initiateRatings(){
+        try{
+            Scanner sc=new Scanner(new File("J://DistSyst//ml-latest-small//ratings.csv"));
+            sc.nextLine();
+            String currentLine="";
+            int movieId=0;
+            while(sc.hasNext()){
+                try{
+                    currentLine=sc.nextLine();
+                    String[] parts=currentLine.split(",");
+                    movieId=Integer.parseInt(parts[1]);
+                    double rating=Double.parseDouble(parts[2]);
+                    //System.out.println(movies);
+                    movies.get(movieId).addRating(rating);
+                }catch(NullPointerException a){
+                    //System.out.println(movieId+" not found");
+                }
+            }
+        }catch(FileNotFoundException e){
+            System.out.println("file not found exception");
+        }
     }
 
     public void sendRating(String movieName, int rating){}

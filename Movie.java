@@ -22,4 +22,10 @@ public class Movie
         averageRating=((averageRating*size)+rating)/(size+1);
         ratings.add(rating);
     }
+    public double getAverage(){
+        return averageRating;
+    }
+    public String getName(){
+        return name;
+    }
 }
