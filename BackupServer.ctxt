@@ -1,0 +1,18 @@
+#BlueJ class context
+comment0.params=
+comment0.target=State\ getState()
+comment1.params=movieName
+comment1.target=int\ getRating(java.lang.String)
+comment2.params=
+comment2.target=void\ initiateMovies()
+comment3.params=
+comment3.target=BackupServer()
+comment4.params=
+comment4.target=void\ initiateRatings()
+comment5.params=movieName\ rating
+comment5.target=Result\ sendRating(java.lang.String,\ java.lang.Double)
+comment6.params=movieID\ rating
+comment6.target=Result\ sendRating(int,\ java.lang.Double)
+comment7.params=args
+comment7.target=void\ main(java.lang.String[])
+numComments=8

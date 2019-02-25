@@ -1,8 +1,18 @@
 #BlueJ class context
 comment0.params=
-comment0.target=State\ getState()
-comment1.params=movieName
-comment1.target=int\ getRating(java.lang.String)
-comment2.params=movieName\ rating
-comment2.target=void\ sendRating(java.lang.String,\ int)
-numComments=3
+comment0.target=void\ startCount()
+comment1.params=
+comment1.target=int\ getCount()
+comment2.params=
+comment2.target=State\ getState()
+comment3.params=movieName
+comment3.target=int\ getRating(java.lang.String)
+comment4.params=movieName\ rating
+comment4.target=Result\ sendRating(java.lang.String,\ java.lang.Double)
+comment5.params=movieID\ rating
+comment5.target=Result\ sendRating(int,\ java.lang.Double)
+comment6.params=otherServer
+comment6.target=Result\ gossipWith(ServerInterface)
+comment7.params=i
+comment7.target=Message\ getMessage(int)
+numComments=8

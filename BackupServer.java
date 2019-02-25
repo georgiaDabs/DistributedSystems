@@ -6,10 +6,9 @@ import java.util.Scanner;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
-public class Server implements ServerInterface
+public class BackupServer implements ServerInterface
 {
     public State state;
-    public HashMap<Integer, Message> queue;
     public HashMap<Integer,Movie> movies;
     public State getState(){
         return state;
@@ -27,7 +26,7 @@ public class Server implements ServerInterface
             while(sc.hasNext()){
                 currentLine=sc.nextLine();
                 String[] parts=currentLine.split("\"");
-
+                
                 String id="";
                 String nameAndDate="";
                 String genres="";
@@ -112,57 +111,15 @@ public class Server implements ServerInterface
         }
     }
 
-    public Server(){
+    public BackupServer(){
         movies=new HashMap<Integer,Movie>();
         initiateMovies();
-        queue=new HashMap<Integer, Message>();
         System.out.println(movies.get(112818).getName());
         initiateRatings();
         for(Movie m:movies.values()){
             //System.out.println("average:"+m.getAverage());
         }
         System.out.println("Size:"+movies.size());
-    }
-
-    public Message getMessage(int i) throws MessageNotExistExcpetion{
-        Message m=null;
-        if(!queue.containsKey(i)){
-            throw new MessageNotExistExcpetion();
-        }else{
-            m=queue.get(i);
-        }
-        return m;
-    }
-
-    public void startCount(){
-        queue=new HashMap<Integer, Message>();
-    }
-
-    public int getCount(){
-        return queue.size();
-    }
-
-    public Result gossipWith(ServerInterface otherServer){
-        try{
-            if(otherServer.getCount()==this.getCount()){
-                return Result.SUCCESFUL;
-            }else{
-                if(otherServer.getCount()>this.getCount()){
-                    try{
-                        for(int i=this.getCount()+1;i<=otherServer.getCount();i++){
-                            queue.put(i,otherServer.getMessage(i));
-                        }
-                    }catch(MessageNotExistExcpetion e){
-                        System.out.println("message on other server does not exist");
-                        return Result.FAILED;
-                    }
-                }
-            }
-        }catch(RemoteException e){
-            System.out.println("Remote Exception");
-        }
-        return Result.FAILED;
-
     }
 
     public void initiateRatings(){
@@ -197,7 +154,6 @@ public class Server implements ServerInterface
         }
         return Result.FAILED;
     }
-
     public Result sendRating(int movieID, Double rating){
         if(movies.containsKey(movieID)){
             movies.get(movieID).addRating(rating);
@@ -205,7 +161,6 @@ public class Server implements ServerInterface
         }
         return Result.FAILED;
     }
-
     public static void main(String[] args){
         try{
             Server obj=new Server();

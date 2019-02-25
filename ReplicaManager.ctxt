@@ -3,4 +3,6 @@ comment0.params=
 comment0.target=ReplicaManager()
 comment1.params=args
 comment1.target=void\ main(java.lang.String[])
-numComments=2
+comment2.params=movieName\ rating
+comment2.target=Result\ sendRating(java.lang.String,\ java.lang.Double)
+numComments=3
