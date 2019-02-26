@@ -1,0 +1,9 @@
+#BlueJ class context
+comment0.target=FrontEndInterface
+comment1.params=rating\ movieName
+comment1.target=Result\ sendRating(int,\ java.lang.String)
+comment2.params=
+comment2.target=void\ initiateStubs()
+comment3.params=movieName
+comment3.target=java.lang.String\ queryMovie(java.lang.String)
+numComments=4

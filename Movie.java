@@ -6,9 +6,11 @@ public class Movie
     public int year;
     public ArrayList<String> genreList;
     public double averageRating;
-    public Movie(String name, int year, String genres){
+    public int id;
+    public Movie(int ID,String name, int year, String genres){
         this.name=name;
         this.year=year;
+        this.id=id;
         String[] genreArray=genres.split("|");
         genreList=new ArrayList<String>();
         for(String g:genreArray){
@@ -16,6 +18,9 @@ public class Movie
         }
         ratings=new ArrayList<Double>();
         averageRating=0.0;
+    }
+    public int getID(){
+        return this.id;
     }
     public void addRating(Double rating){
         int size=ratings.size();

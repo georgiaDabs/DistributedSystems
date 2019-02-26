@@ -1,9 +1,28 @@
 import java.util.Scanner;
+
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+
 public class Client
 {
-
+    private static FrontEndInterface stub;
     public static void main(String[] args){
+        try {
 
+	    // Get registry
+	    Registry registry = LocateRegistry.getRegistry("mira1.dur.ac.uk", 37001);
+
+	    // Lookup the remote object "Hello" from registry
+	    // and create a stub for it
+	     stub = (FrontEndInterface) registry.lookup("FrontEndServer");
+
+	    // Invoke a remote method
+	   
+
+	} catch (Exception e) {
+		System.err.println("Client exception: " + e.toString());
+		e.printStackTrace();
+	}
         Scanner sc=new Scanner(System.in);
 
         boolean running =true;

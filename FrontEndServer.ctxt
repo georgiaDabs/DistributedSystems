@@ -1,2 +1,7 @@
 #BlueJ class context
-numComments=0
+comment0.target=FrontEndServer
+comment1.params=
+comment1.target=FrontEndServer()
+comment2.params=args
+comment2.target=void\ main(java.lang.String[])
+numComments=3

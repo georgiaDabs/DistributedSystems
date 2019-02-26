@@ -2,9 +2,15 @@
 public class Message
 {
     private Movie m;
-    private int rating;
-    public Message(Movie m, int rating){
+    private double rating;
+    public Message(Movie m, double rating){
         this.m=m;
         this.rating=rating;
+    }
+    public int getMovieID(){
+        return this.m.getID();
+    }
+    public double getRating(){
+        return this.rating;
     }
 }
