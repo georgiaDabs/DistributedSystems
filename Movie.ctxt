@@ -1,13 +1,12 @@
 #BlueJ class context
-comment0.target=Movie
-comment1.params=ID\ name\ year\ genres
-comment1.target=Movie(int,\ java.lang.String,\ int,\ java.lang.String)
-comment2.params=
-comment2.target=int\ getID()
-comment3.params=rating
-comment3.target=void\ addRating(java.lang.Double)
+comment0.params=ID\ name\ year\ genres
+comment0.target=Movie(int,\ java.lang.String,\ int,\ java.lang.String)
+comment1.params=
+comment1.target=int\ getID()
+comment2.params=rating
+comment2.target=void\ addRating(java.lang.Double)
+comment3.params=
+comment3.target=double\ getAverage()
 comment4.params=
-comment4.target=double\ getAverage()
-comment5.params=
-comment5.target=java.lang.String\ getName()
-numComments=6
+comment4.target=java.lang.String\ getName()
+numComments=5

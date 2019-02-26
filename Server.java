@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Set;
+import java.rmi.AlreadyBoundException;
 public class Server implements ServerInterface
 {
     public  String name;
@@ -48,7 +49,7 @@ public class Server implements ServerInterface
 
     public void initiateMovies(){
         try{
-            Scanner sc=new Scanner(new File("J://DistSyst//ml-latest-small//movies.csv"));
+            Scanner sc=new Scanner(new File("movies.csv"));
             sc.nextLine();
             String currentLine;
             while(sc.hasNext()){
@@ -136,7 +137,8 @@ public class Server implements ServerInterface
             }
 
         }catch(FileNotFoundException e){
-            System.out.println("File not found");
+            System.out.println("File movies.csv not found in Server");
+            e.printStackTrace();
         }
     }
 
@@ -185,7 +187,9 @@ public class Server implements ServerInterface
         }
     }
     public Result gossipWith(ServerInterface otherServer){
+        String name="NOT AVAILABLE";
         try{
+            name=otherServer.getName();
             for(Integer i:otherServer.getQueueNumbers()){
                 if(!queue.containsKey(i)){
                     queue.put(i,otherServer.getMessage(i));
@@ -200,7 +204,7 @@ public class Server implements ServerInterface
                 }
             }
         }catch(RemoteException e){
-            System.out.println("Remote Exception");
+            System.out.println("Remote Exception at gossip with "+name);
         }catch(MessageNotExistException e){
             System.out.println("Can't find message");
         }
@@ -210,7 +214,7 @@ public class Server implements ServerInterface
 
     public void initiateRatings(){
         try{
-            Scanner sc=new Scanner(new File("J://DistSyst//ml-latest-small//ratings.csv"));
+            Scanner sc=new Scanner(new File("ratings.csv"));
             sc.nextLine();
             String currentLine="";
             int movieId=0;
@@ -227,7 +231,7 @@ public class Server implements ServerInterface
                 }
             }
         }catch(FileNotFoundException e){
-            System.out.println("file not found exception");
+            System.out.println("rating file not found exception");
         }
     }
 
@@ -255,10 +259,13 @@ public class Server implements ServerInterface
             ServerInterface stub = (ServerInterface) UnicastRemoteObject.exportObject(obj, 0);
 
             // Get registry
-            Registry registry = LocateRegistry.getRegistry("mira2.dur.ac.uk", 37008);
-
-            // Bind the remote object's stub in the registry
-            registry.bind("MovieRating1", stub);
+            Registry registry = LocateRegistry.getRegistry("mira1.dur.ac.uk", 37008);
+            try{
+                registry.bind("MovieRating1",stub);
+            }catch(AlreadyBoundException a){
+                registry.unbind("MovieRating1");
+                registry.bind("MovieRating1",stub);
+            }
             System.err.println("Server ready");
         }catch(Exception e) {
             System.err.println("Server exception: " + e.toString());

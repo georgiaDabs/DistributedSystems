@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.rmi.AlreadyBoundException;
 public class ReplicaManager implements FrontEndInterface
 {
     public  ServerInterface current;
@@ -18,7 +19,7 @@ public class ReplicaManager implements FrontEndInterface
         try {
 
             // Get registry
-            Registry registry = LocateRegistry.getRegistry("mira2.dur.ac.uk", 37008);
+            Registry registry = LocateRegistry.getRegistry("mira1.dur.ac.uk", 37008);
 
             // Lookup the remote object "Hello" from registry
             // and create a stub for itls
@@ -75,17 +76,23 @@ public class ReplicaManager implements FrontEndInterface
         return all;
     }
 
-    public  void main(String[] args){
-        String host = (args.length < 1) ? null : args[0];
-        this.current=null;
-        backups=new ArrayList<ServerInterface>();
+    public static void main(String[] args){
+
         try {
             ReplicaManager obj=new ReplicaManager();
+            obj.current=null;
+            obj.backups=new ArrayList<ServerInterface>();
             FrontEndInterface thisStub = (FrontEndInterface) UnicastRemoteObject.exportObject(obj, 0);
             thisStub.initiateStubs();
             // Get registry
-            Registry registry = LocateRegistry.getRegistry("mira2.dur.ac.uk", 37008);
-            registry.bind("FrontEndServer",thisStub);
+            Registry registry = LocateRegistry.getRegistry("mira1.dur.ac.uk", 37008);
+            try{
+                registry.bind("FrontEndServer",thisStub);
+            }catch(AlreadyBoundException a){
+                registry.unbind("FrontEndServer");
+                registry.bind("FrontEndServer",thisStub);
+            }
+
             // Lookup the remote object "Hello" from registry
             // and create a stub for itls
 
@@ -117,7 +124,10 @@ public class ReplicaManager implements FrontEndInterface
 
         try{
             if(checkServerStates()){
+                System.out.println("tying to get "+current.getName()+" to gossip with "+backups.get(0));
                 current.gossipWith(backups.get(0));
+                System.out.println("tying to get "+current.getName()+" to gossip with "+backups.get(1));
+                
                 current.gossipWith(backups.get(1));
                 current.update();
                 backups.get(0).update();

@@ -2,27 +2,27 @@ import java.util.Scanner;
 
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-
+import java.rmi.Remote;
+import java.rmi.RemoteException;
 public class Client
 {
     private static FrontEndInterface stub;
     public static void main(String[] args){
         try {
 
-	    // Get registry
-	    Registry registry = LocateRegistry.getRegistry("mira1.dur.ac.uk", 37001);
+            // Get registry
+            Registry registry = LocateRegistry.getRegistry("mira1.dur.ac.uk", 37008);
 
-	    // Lookup the remote object "Hello" from registry
-	    // and create a stub for it
-	     stub = (FrontEndInterface) registry.lookup("FrontEndServer");
+            // Lookup the remote object "Hello" from registry
+            // and create a stub for it
+            stub = (FrontEndInterface) registry.lookup("FrontEndServer");
 
-	    // Invoke a remote method
-	   
+            // Invoke a remote method
 
-	} catch (Exception e) {
-		System.err.println("Client exception: " + e.toString());
-		e.printStackTrace();
-	}
+        } catch (Exception e) {
+            System.err.println("Client exception: " + e.toString());
+            e.printStackTrace();
+        }
         Scanner sc=new Scanner(System.in);
 
         boolean running =true;
@@ -45,6 +45,7 @@ public class Client
             }
         }
     }
+
     public static void getRating(){
         Scanner sc=new Scanner(System.in);
         boolean current=true;
@@ -56,9 +57,17 @@ public class Client
             int response=sc.nextInt();
             if(response==3){
                 current=false;
+            }else if(response==2){
+                String input=sc.nextLine();
+                try{
+                String serverResponse=stub.queryMovie(input);
+            }catch(RemoteException e){
+                System.out.println("Reote exception at query movie");
+            }
             }
         }
     }
+
     public static void sendRating(){
         Scanner sc=new Scanner(System.in);
         boolean current=true;
@@ -82,9 +91,10 @@ public class Client
             }
             System.out.println("Please Enter the rating as a double");
             double rating=sc.nextDouble();
-            
+
         }
     }
+
     public static void updateRating(){
         Scanner sc=new Scanner(System.in);
         boolean current=true;
