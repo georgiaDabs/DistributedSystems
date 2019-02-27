@@ -10,14 +10,14 @@ import java.rmi.AlreadyBoundException;
 import java.util.Set;
 public class BackupServer1
 {
-    
+   static Registry registry;
     public static void main(String[] args){
         try{
-            Server obj=new Server();
+            Server obj=new Server("MovieRating2");
             ServerInterface stub = (ServerInterface) UnicastRemoteObject.exportObject(obj, 0);
 
             // Get registry
-            Registry registry = LocateRegistry.getRegistry("mira1.dur.ac.uk", 37008);
+             registry = LocateRegistry.getRegistry("mira2.dur.ac.uk",37008);
             try{
                 registry.bind("MovieRating2",stub);
             }catch(AlreadyBoundException a){

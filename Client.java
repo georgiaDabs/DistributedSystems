@@ -1,5 +1,5 @@
 import java.util.Scanner;
-
+import java.util.InputMismatchException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.Remote;
@@ -11,7 +11,7 @@ public class Client
         try {
 
             // Get registry
-            Registry registry = LocateRegistry.getRegistry("mira1.dur.ac.uk", 37008);
+            Registry registry = LocateRegistry.getRegistry("mira2.dur.ac.uk", 37009);
 
             // Lookup the remote object "Hello" from registry
             // and create a stub for it
@@ -54,16 +54,37 @@ public class Client
             System.out.println("1. By Movie ID");
             System.out.println("2. By Movie Name");
             System.out.println("3. Back To Main Menu");
-            int response=sc.nextInt();
-            if(response==3){
-                current=false;
-            }else if(response==2){
-                String input=sc.nextLine();
-                try{
-                String serverResponse=stub.queryMovie(input);
-            }catch(RemoteException e){
-                System.out.println("Reote exception at query movie");
-            }
+            int response;
+            try{
+               response=sc.nextInt();
+                if(response==3){
+                    current=false;
+                }else if(response==2){
+                    System.out.println("Enter name:");
+                    String input=sc.next();
+                    try{
+                        String serverResponse=stub.queryMovie(input);
+                        System.out.println(serverResponse);
+                    }catch(RemoteException e){
+                        System.out.println("Remote exception at query movie");
+                        e.printStackTrace();
+                    }catch(NullPointerException a){
+                        System.out.println("input was:"+input);
+                        System.out.println("Server is:"+stub);
+                    }
+                }else if(response==1){
+                    System.out.println("Enter ID:");
+                    int input=sc.nextInt();
+                    try{
+                        String serverResponse=stub.queryMovie(input);
+                        System.out.println(serverResponse);
+                    }catch(RemoteException e){
+                        System.out.println("Remote exception at query movie");
+                        e.printStackTrace();
+                    }
+                }
+            }catch(InputMismatchException i){
+                System.out.println("Not a number try again");
             }
         }
     }
@@ -85,13 +106,28 @@ public class Client
             }else if(response==1){
                 System.out.println("Please enter the id");
                 id=sc.nextInt();
+                try{
+                String serverResponse=stub.getMovieForReview(id);
+                System.out.println(serverResponse);
+                
+            }catch(NotAMovieException a){
+                System.out.println("Movie not found try again");
+            }catch(RemoteException r){
+                System.out.println("remote exception at get movie for review");
+            }
             }else if(response==2){
                 System.out.println("Please enter the name");
                 name=sc.nextLine();
             }
             System.out.println("Please Enter the rating as a double");
             double rating=sc.nextDouble();
-
+            try{
+                Result r=stub.sendRating(rating,id);
+                System.out.println(r);
+            }catch(RemoteException r){
+                System.out.println("Remot exception in sending review");
+                r.printStackTrace();
+            }
         }
     }
 

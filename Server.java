@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.LinkedHashSet;
 import java.rmi.AlreadyBoundException;
 public class Server implements ServerInterface
 {
@@ -18,12 +19,14 @@ public class Server implements ServerInterface
         return this.name;
     }
     public Movie getMovie(String name) throws NotAMovieException{
+        System.out.println("looking for movie called:"+name);
         boolean found=false;
         Movie movie=null;
         for(Movie m:movies.values()){
             if(m.getName().equals(name)){
                 movie=m;
                 found=true;
+                System.out.println("Found film at id:"+m.getID());
             }
         }
         if(!found){
@@ -38,6 +41,7 @@ public class Server implements ServerInterface
         Movie m=null;
         if(movies.containsKey(i)){
             m=movies.get(i);
+            System.out.println("Found film:"+m.getName());
         }else{
             throw new NotAMovieException();
         }
@@ -142,7 +146,9 @@ public class Server implements ServerInterface
         }
     }
 
-    public Server(){
+    public Server(String name){
+        this.name=name;
+        this.state=State.ACTIVE;
         movies=new HashMap<Integer,Movie>();
         initiateMovies();
         queue=new HashMap<Integer, Message>();
@@ -168,13 +174,15 @@ public class Server implements ServerInterface
         queue=new HashMap<Integer, Message>();
     }
 
-    public Set<Integer> getQueueNumbers(){
-        return queue.keySet();
+    public LinkedHashSet<Integer> getQueueNumbers(){
+        LinkedHashSet<Integer> numbers=new LinkedHashSet<Integer>(queue.keySet());
+        return numbers;
     }
     public boolean gotMessage(int i){
         return queue.containsKey(i);
     }
     public Result sendMessage(int i, Message m){
+        System.out.println("recieving message:"+i+" Movie:"+m.getMovieID());
         if(!queue.containsKey(i)){
             queue.put(i,m);
             return Result.SUCCESFUL;
@@ -188,8 +196,10 @@ public class Server implements ServerInterface
     }
     public Result gossipWith(ServerInterface otherServer){
         String name="NOT AVAILABLE";
+        
         try{
             name=otherServer.getName();
+            System.out.println("gossiping with:"+name);
             for(Integer i:otherServer.getQueueNumbers()){
                 if(!queue.containsKey(i)){
                     queue.put(i,otherServer.getMessage(i));
@@ -205,6 +215,7 @@ public class Server implements ServerInterface
             }
         }catch(RemoteException e){
             System.out.println("Remote Exception at gossip with "+name);
+            e.printStackTrace();
         }catch(MessageNotExistException e){
             System.out.println("Can't find message");
         }
@@ -252,15 +263,15 @@ public class Server implements ServerInterface
         }
         return Result.FAILED;
     }
-
+    static Registry registry;
     public static void main(String[] args){
         try{
-            Server obj=new Server();
+            Server obj=new Server("MovieRating1");
             ServerInterface stub = (ServerInterface) UnicastRemoteObject.exportObject(obj, 0);
 
             // Get registry
-            Registry registry = LocateRegistry.getRegistry("mira1.dur.ac.uk", 37008);
-            try{
+           registry = LocateRegistry.createRegistry(37008);
+           try{
                 registry.bind("MovieRating1",stub);
             }catch(AlreadyBoundException a){
                 registry.unbind("MovieRating1");

@@ -1,8 +1,12 @@
 #BlueJ class context
-comment0.params=rating\ movieName
-comment0.target=Result\ sendRating(int,\ java.lang.String)
+comment0.params=rating\ movieID
+comment0.target=Result\ sendRating(double,\ int)
 comment1.params=
 comment1.target=void\ initiateStubs()
 comment2.params=movieName
 comment2.target=java.lang.String\ queryMovie(java.lang.String)
-numComments=3
+comment3.params=movieID
+comment3.target=java.lang.String\ queryMovie(int)
+comment4.params=movieID
+comment4.target=java.lang.String\ getMovieForReview(int)
+numComments=5

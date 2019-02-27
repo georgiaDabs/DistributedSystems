@@ -19,14 +19,17 @@ public class ReplicaManager implements FrontEndInterface
         try {
 
             // Get registry
-            Registry registry = LocateRegistry.getRegistry("mira1.dur.ac.uk", 37008);
+            Registry registry = LocateRegistry.getRegistry("mira2.dur.ac.uk", 37008);
 
             // Lookup the remote object "Hello" from registry
             // and create a stub for itls
 
             current = (ServerInterface) registry.lookup("MovieRating1");
+            System.out.println("Current server state:"+current.getState());
             ServerInterface replica2=(ServerInterface) registry.lookup("MovieRating2");
+            System.out.println("Backup1 server state:"+replica2.getState());
             ServerInterface replica3=(ServerInterface) registry.lookup("MovieRating3");
+            System.out.println("Backup2 server state:"+replica3.getState());
             backups.add(replica2);
             backups.add(replica3);
             if(current.getState()==State.OVERLOADED||current.getState()==State.OFFLINE){
@@ -75,7 +78,7 @@ public class ReplicaManager implements FrontEndInterface
         }
         return all;
     }
-
+    static Registry registry;
     public static void main(String[] args){
 
         try {
@@ -85,7 +88,7 @@ public class ReplicaManager implements FrontEndInterface
             FrontEndInterface thisStub = (FrontEndInterface) UnicastRemoteObject.exportObject(obj, 0);
             thisStub.initiateStubs();
             // Get registry
-            Registry registry = LocateRegistry.getRegistry("mira1.dur.ac.uk", 37008);
+             registry = LocateRegistry.createRegistry(37009);
             try{
                 registry.bind("FrontEndServer",thisStub);
             }catch(AlreadyBoundException a){
@@ -96,25 +99,25 @@ public class ReplicaManager implements FrontEndInterface
             // Lookup the remote object "Hello" from registry
             // and create a stub for itls
 
-            ServerInterface stub = (ServerInterface) registry.lookup("MovieRating1");
-
+            
         } catch (Exception e) {
             System.err.println("Client exception: " + e.toString());
             e.printStackTrace();
         }
     }
 
-    public Result sendRating(int rating,String movieName){
+    public Result sendRating(double rating,int movieID){
         Result r=Result.FAILED;
         try{
-            Movie m= current.getMovie(movieName);
+            Movie m= current.getMovie(movieID);
             Message msg=new Message(m,rating);
             r=current.sendMessage(currentCount,msg);
             currentCount++;
         }catch(RemoteException e){
-            System.err.println("Remote exception");
+            System.err.println("Remote exception in send rating");
+            e.printStackTrace();
         }catch(NotAMovieException a){
-            System.err.println(movieName+" not found in server");
+            System.err.println("Movie not found in server");
             r=Result.FAILED;
         }
         return r;
@@ -124,34 +127,62 @@ public class ReplicaManager implements FrontEndInterface
 
         try{
             if(checkServerStates()){
-                System.out.println("tying to get "+current.getName()+" to gossip with "+backups.get(0));
+                System.out.println("tying to get "+current.getName()+" to gossip with "+backups.get(0).getName());
                 current.gossipWith(backups.get(0));
-                System.out.println("tying to get "+current.getName()+" to gossip with "+backups.get(1));
+                System.out.println("tying to get "+current.getName()+" to gossip with "+backups.get(1).getName());
                 
                 current.gossipWith(backups.get(1));
                 current.update();
                 backups.get(0).update();
                 backups.get(1).update();
+                System.out.println("gossiping succesful");
             }
         }catch(RemoteException e){
-            System.out.println("Remote Exception");
+            System.out.println("Remote Exception at gossip function");
 
         }
     }
-
+    public String getMovieForReview(int id) throws NotAMovieException{
+        String str="";
+        try{
+          Movie m=current.getMovie(id);
+           str="Movie selected:"+m.getName();
+        }catch(RemoteException r){
+            System.out.println("Remote Exception at get movie for Review");
+        }
+        return str;
+    }
     public String queryMovie(String movieName){
         String str="";
+        System.out.println("Starting to gossp");
         gossip();
         try{
             Movie m=current.getMovie(movieName);
-            str+="Movie Name:"+m.getName()+"/n";
-            str+="Movie ID"+m.getID()+"/n";
-            str+="Average Rating"+m.getAverage()+"/n";
-
+            str+="Movie Name:"+m.getName()+"\n";
+            str+="Movie ID"+m.getID()+"\n";
+            str+="Average Rating"+m.getAverage()+"\n";
         }catch(NotAMovieException e){
             str="MovieCould not be found in the server";
         }catch(RemoteException r){
-            System.err.println("RemoteException");
+            System.err.println("RemoteException at queryMovie");
+            r.printStackTrace();
+        }
+        return str;
+    }
+    public String queryMovie(int movieID){
+        String str="";
+        System.out.println("Starting to gossp");
+        gossip();
+        try{
+            Movie m=current.getMovie(movieID);
+            str+="Movie Name: "+m.getName()+"\n";
+            str+="Movie ID: "+m.getID()+"\n";
+            str+="Average Rating: "+m.getAverage()+"\n";
+        }catch(NotAMovieException e){
+            str="MovieCould not be found in the server";
+        }catch(RemoteException r){
+            System.err.println("RemoteException at queryMovie");
+            r.printStackTrace();
         }
         return str;
     }

@@ -1,5 +1,6 @@
 import java.util.ArrayList;
-public class Movie
+import java.io.Serializable;
+public class Movie implements Serializable
 {
     public ArrayList<Double> ratings;
     public String name;
@@ -10,7 +11,7 @@ public class Movie
     public Movie(int ID,String name, int year, String genres){
         this.name=name;
         this.year=year;
-        this.id=id;
+        this.id=ID;
         String[] genreArray=genres.split("|");
         genreList=new ArrayList<String>();
         for(String g:genreArray){
