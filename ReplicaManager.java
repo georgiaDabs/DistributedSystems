@@ -106,11 +106,11 @@ public class ReplicaManager implements FrontEndInterface
         }
     }
 
-    public Result sendRating(double rating,int movieID){
+    public Result sendRating(double rating,int userId, int movieID){
         Result r=Result.FAILED;
         try{
             Movie m= current.getMovie(movieID);
-            Message msg=new Message(m,rating);
+            Message msg=new Message(m,rating,userId);
             r=current.sendMessage(currentCount,msg);
             currentCount++;
         }catch(RemoteException e){
@@ -152,6 +152,17 @@ public class ReplicaManager implements FrontEndInterface
         }
         return str;
     }
+    public String updateMovie(int movieId, int userId, double newRating) throws NotAMovieException{
+        String response="";
+        try{
+            response=current.updateMovie(movieId, userId, newRating);
+        }catch(RemoteException r){
+            System.out.println("Remote exception at update movie in replica manager");
+            r.printStackTrace();
+        }
+        
+        return response;
+    }
     public String queryMovie(String movieName){
         String str="";
         System.out.println("Starting to gossp");
@@ -161,6 +172,7 @@ public class ReplicaManager implements FrontEndInterface
             str+="Movie Name:"+m.getName()+"\n";
             str+="Movie ID"+m.getID()+"\n";
             str+="Average Rating"+m.getAverage()+"\n";
+            str+="Reviews"+m.getAllReviews()+"\n";
         }catch(NotAMovieException e){
             str="MovieCould not be found in the server";
         }catch(RemoteException r){

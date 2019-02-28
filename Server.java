@@ -18,6 +18,15 @@ public class Server implements ServerInterface
     public String getName(){
         return this.name;
     }
+    public String updateMovie(int movieId, int userId, double newRating) throws NotAMovieException{
+        String response="Updating "+userId+"\'s review for movie "+movieId+" from";
+        if(movies.containsKey(movieId)){
+            response+=movies.get(movieId).update(userId,newRating);
+        }else{
+            throw new NotAMovieException();
+        }
+        return response;
+    }
     public Movie getMovie(String name) throws NotAMovieException{
         System.out.println("looking for movie called:"+name);
         boolean found=false;
@@ -191,7 +200,7 @@ public class Server implements ServerInterface
     }
     public void update(){
         for(Message msg:queue.values()){
-            movies.get(msg.getMovieID()).addRating(msg.getRating());
+            movies.get(msg.getMovieID()).addRating(msg.getUserId(),msg.getRating());
         }
     }
     public Result gossipWith(ServerInterface otherServer){
@@ -229,14 +238,16 @@ public class Server implements ServerInterface
             sc.nextLine();
             String currentLine="";
             int movieId=0;
+            int userId=0;
             while(sc.hasNext()){
                 try{
                     currentLine=sc.nextLine();
                     String[] parts=currentLine.split(",");
+                    userId=Integer.parseInt(parts[0]);
                     movieId=Integer.parseInt(parts[1]);
                     double rating=Double.parseDouble(parts[2]);
                     //System.out.println(movies);
-                    movies.get(movieId).addRating(rating);
+                    movies.get(movieId).addRating(userId,rating);
                 }catch(NullPointerException a){
                     //System.out.println(movieId+" not found");
                 }
@@ -246,19 +257,19 @@ public class Server implements ServerInterface
         }
     }
 
-    public Result sendRating(String movieName, Double rating){
+    public Result sendRating(String movieName,int userId, Double rating){
         for(Movie m:movies.values()){
             if(m.getName().contains(movieName)){
-                m.addRating(rating);
+                m.addRating(userId, rating);
                 return Result.SUCCESFUL;
             }
         }
         return Result.FAILED;
     }
 
-    public Result sendRating(int movieID, Double rating){
+    public Result sendRating(int movieID, int userId, Double rating){
         if(movies.containsKey(movieID)){
-            movies.get(movieID).addRating(rating);
+            movies.get(movieID).addRating(userId,rating);
             return Result.SUCCESFUL;
         }
         return Result.FAILED;

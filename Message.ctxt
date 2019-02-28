@@ -1,8 +1,10 @@
 #BlueJ class context
-comment0.params=m\ rating
-comment0.target=Message(Movie,\ double)
+comment0.params=m\ rating\ userId
+comment0.target=Message(Movie,\ double,\ int)
 comment1.params=
-comment1.target=int\ getMovieID()
+comment1.target=int\ getUserId()
 comment2.params=
-comment2.target=double\ getRating()
-numComments=3
+comment2.target=int\ getMovieID()
+comment3.params=
+comment3.target=double\ getRating()
+numComments=4
