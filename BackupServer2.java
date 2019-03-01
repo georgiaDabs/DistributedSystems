@@ -14,6 +14,7 @@ public class BackupServer2
     public static void main(String[] args){
         try{
             Server obj=new Server("MovieRating3");
+            //obj.changeState(State.OVERLOADED);
             ServerInterface stub = (ServerInterface) UnicastRemoteObject.exportObject(obj, 0);
 
             // Get registry

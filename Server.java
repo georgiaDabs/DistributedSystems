@@ -11,22 +11,83 @@ import java.util.LinkedHashSet;
 import java.rmi.AlreadyBoundException;
 public class Server implements ServerInterface
 {
-    public  String name;
-    public State state;
-    public HashMap<Integer, Message> queue;
-    public HashMap<Integer,Movie> movies;
-    public String getName(){
-        return this.name;
-    }
-    public String updateMovie(int movieId, int userId, double newRating) throws NotAMovieException{
-        String response="Updating "+userId+"\'s review for movie "+movieId+" from";
+    private  String name;
+    private State state;
+    private HashMap<Integer, Message> queue;
+    private HashMap<Integer,Movie> movies;
+    private int correctUpto;
+    public String addReview(int count, int movieId, int userId, double rating) throws NotAMovieException{
+        if(count==(correctUpto+1)){
+            correctUpto=count;
+        }
+        String response="";
         if(movies.containsKey(movieId)){
-            response+=movies.get(movieId).update(userId,newRating);
+            response=implementAdd(movieId, userId, rating);
+            Message msg=new Message(movies.get(movieId),rating,userId, MessageType.ADD);
+            queue.put(count, msg);
         }else{
             throw new NotAMovieException();
         }
         return response;
     }
+
+    public String implementAdd(int movieId, int userId, double rating){
+        String response="Adding rating:"+rating+" to movie:"+movieId+" for user:"+userId;
+        movies.get(movieId).addRating(userId, rating);
+        return response;
+    }
+
+    public String getName(){
+        return this.name;
+    }
+
+    public String updateMovie(int count,int movieId, int userId, double newRating) throws NotAMovieException{
+        if(count==(correctUpto+1)){
+            correctUpto=count;
+        }
+        String response="";
+        if(movies.containsKey(movieId)){
+            response=implementUpdate( movieId,userId, newRating);
+            Message msg=new Message(movies.get(movieId),newRating,userId, MessageType.UPDATE);
+            queue.put(count, msg);
+        }else{
+            throw new NotAMovieException();
+        }
+        return response;
+    }
+
+    public String implementUpdate(int movieId, int userId, double newRating){
+        String response="Updating "+userId+"\'s review for movie "+movieId+" from";
+
+        response+=movies.get(movieId).update(userId,newRating);
+
+        return response;
+    }
+
+    public Result deleteReview(int count, int movieId,int userId)throws NotAMovieException{
+        if(count==(correctUpto+1)){
+            correctUpto=count;
+        }
+        Result r=Result.FAILED;
+        if(movies.containsKey(movieId)){
+            r=implementDelete( movieId,  userId);
+            Message msg=new Message(movies.get(movieId), 0.0, userId,MessageType.DELETE);
+            queue.put(count,msg);
+        }else{
+            throw new NotAMovieException();
+        }
+        return r;
+    }
+
+    public Result implementDelete(int movieId,int userId) throws NotAMovieException{
+        Result r=Result.FAILED;
+        if(movies.containsKey(movieId)){
+            r=movies.get(movieId).deleteReview(userId);
+
+        }
+        return r;
+    }
+
     public Movie getMovie(String name) throws NotAMovieException{
         System.out.println("looking for movie called:"+name);
         boolean found=false;
@@ -43,9 +104,11 @@ public class Server implements ServerInterface
         }
         return movie;
     }
+
     public State getState(){
         return state;
     }
+
     public Movie getMovie(int i) throws NotAMovieException{
         Movie m=null;
         if(movies.containsKey(i)){
@@ -56,6 +119,7 @@ public class Server implements ServerInterface
         }
         return m;
     }
+
     public double getRating(String movieName) throws NotAMovieException{
         return getMovie(movieName).getAverage();
     }
@@ -129,7 +193,7 @@ public class Server implements ServerInterface
 
                 }
                 //System.out.println("ID"+id+"name:"+name+" date:"+date+" genres:"+genres);
-                
+
                 int idInt=0;
                 try{
                     idInt=Integer.parseInt(id);
@@ -156,6 +220,7 @@ public class Server implements ServerInterface
     }
 
     public Server(String name){
+        correctUpto=0;
         this.name=name;
         this.state=State.ACTIVE;
         movies=new HashMap<Integer,Movie>();
@@ -187,9 +252,11 @@ public class Server implements ServerInterface
         LinkedHashSet<Integer> numbers=new LinkedHashSet<Integer>(queue.keySet());
         return numbers;
     }
+
     public boolean gotMessage(int i){
         return queue.containsKey(i);
     }
+
     public Result sendMessage(int i, Message m){
         System.out.println("recieving message:"+i+" Movie:"+m.getMovieID());
         if(!queue.containsKey(i)){
@@ -198,14 +265,34 @@ public class Server implements ServerInterface
         }
         return Result.FAILED;
     }
+
     public void update(){
         for(Message msg:queue.values()){
-            movies.get(msg.getMovieID()).addRating(msg.getUserId(),msg.getRating());
+            if(msg.getType()==MessageType.UPDATE){
+                implementUpdate(msg.getMovieID(), msg.getUserId(), msg.getRating());
+            }else if(msg.getType()==MessageType.DELETE){
+                try{
+                    implementDelete(msg.getMovieID(),msg.getUserId());
+                }catch(NotAMovieException e){
+                    System.out.println("Not a movie thrown in update section VERY BAD");
+                }
+            }else if(msg.getType()==MessageType.ADD){
+                implementAdd(msg.getMovieID(), msg.getUserId(), msg.getRating());
+            }
         }
+        queue=new HashMap<Integer, Message>();
+    }
+
+    public boolean isUpToDate(int i){
+        System.out.println("request made to see if up to date");
+        return (queue.size()==i);
+    }
+    public int getCorrectdness(){
+        return correctUpto;
     }
     public Result gossipWith(ServerInterface otherServer){
         String name="NOT AVAILABLE";
-        
+
         try{
             name=otherServer.getName();
             System.out.println("gossiping with:"+name);
@@ -257,7 +344,7 @@ public class Server implements ServerInterface
         }
     }
 
-    public Result sendRating(String movieName,int userId, Double rating){
+    /*public Result sendRating(String movieName,int userId, Double rating){
         for(Movie m:movies.values()){
             if(m.getName().contains(movieName)){
                 m.addRating(userId, rating);
@@ -265,15 +352,19 @@ public class Server implements ServerInterface
             }
         }
         return Result.FAILED;
+    }*/
+
+    public void changeState(State s){
+        this.state=s;
     }
 
-    public Result sendRating(int movieID, int userId, Double rating){
+    /*public Result sendRating(int movieID, int userId, Double rating){
         if(movies.containsKey(movieID)){
             movies.get(movieID).addRating(userId,rating);
             return Result.SUCCESFUL;
         }
         return Result.FAILED;
-    }
+    }*/
     static Registry registry;
     public static void main(String[] args){
         try{
@@ -281,8 +372,8 @@ public class Server implements ServerInterface
             ServerInterface stub = (ServerInterface) UnicastRemoteObject.exportObject(obj, 0);
 
             // Get registry
-           registry = LocateRegistry.createRegistry(37008);
-           try{
+            registry = LocateRegistry.createRegistry(37008);
+            try{
                 registry.bind("MovieRating1",stub);
             }catch(AlreadyBoundException a){
                 registry.unbind("MovieRating1");

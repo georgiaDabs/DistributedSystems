@@ -7,6 +7,4 @@ comment2.params=
 comment2.target=void\ getRating()
 comment3.params=
 comment3.target=void\ sendRating()
-comment4.params=
-comment4.target=void\ updateRating()
-numComments=5
+numComments=4

@@ -4,7 +4,9 @@ public class Message implements Serializable
     private Movie m;
     private double rating;
     private int userId;
-    public Message(Movie m, double rating, int userId){
+    private MessageType type;
+    public Message(Movie m, double rating, int userId, MessageType type){
+        this.type=type;
         this.m=m;
         this.rating=rating;
         this.userId=userId;
@@ -17,5 +19,8 @@ public class Message implements Serializable
     }
     public double getRating(){
         return this.rating;
+    }
+    public MessageType getType(){
+        return this.type;
     }
 }

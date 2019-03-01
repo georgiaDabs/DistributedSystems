@@ -21,6 +21,13 @@ public class Movie implements Serializable
         ratings=new HashMap<Integer, Double>();
         averageRating=0.0;
     }
+    public Result deleteReview(int userId){
+        if(ratings.containsKey(userId)){
+            ratings.remove(userId);
+            return Result.SUCCESFUL;
+        }
+        return Result.FAILED;
+    }
     public String update(int userId, double newRating){
         String response=ratings.get(userId)+" to "+newRating;
         ratings.put(userId,newRating);

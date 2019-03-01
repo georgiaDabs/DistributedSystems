@@ -13,7 +13,11 @@ public interface ServerInterface extends Remote
    public Result gossipWith(ServerInterface otherServer) throws RemoteException;
    public Message getMessage(int i) throws RemoteException,MessageNotExistException;
    public boolean gotMessage(int i) throws RemoteException;
-   public String updateMovie(int movieId, int userId, double newRating) throws NotAMovieException, RemoteException;
+   public String updateMovie(int count,int movieId, int userId, double newRating) throws NotAMovieException, RemoteException;
    public String getName() throws RemoteException;
    public void update() throws RemoteException;
+   public Result deleteReview(int count, int movieId, int userId) throws RemoteException, NotAMovieException;
+   public boolean isUpToDate(int i) throws RemoteException;
+   public int getCorrectdness() throws RemoteException;
+   public String addReview(int count, int movieId, int userId, double rating) throws NotAMovieException, RemoteException;
 }

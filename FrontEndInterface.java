@@ -7,5 +7,6 @@ public interface FrontEndInterface extends Remote
     public String queryMovie(String movieName) throws RemoteException;
     public String queryMovie(int movieID) throws RemoteException;
     public String getMovieForReview(int movieID) throws NotAMovieException,RemoteException;
+    public Result deleteReview(int movieId, int userId) throws NotAMovieException, RemoteException;
     public String updateMovie(int movieId, int userId, double newRating) throws RemoteException, NotAMovieException;
 }

@@ -11,7 +11,7 @@ public class Client
         try {
 
             // Get registry
-            Registry registry = LocateRegistry.getRegistry("mira2.dur.ac.uk", 37009);
+            Registry registry = LocateRegistry.getRegistry("mira1.dur.ac.uk", 37009);
 
             // Lookup the remote object "Hello" from registry
             // and create a stub for it
@@ -43,7 +43,7 @@ public class Client
             }else if(response==2){
                 sendRating();
             }else if(response==3){
-                updateRating();
+                updateRatings();
             }
         }
     }
@@ -55,6 +55,7 @@ public class Client
             System.out.println("How would you like to get the film to update?");
             System.out.println("1.by ID");
             System.out.println("2.by name");
+            System.out.println("3. Back to main menu");
             int response=sc.nextInt();
             if(response==1){
                 try{
@@ -83,6 +84,8 @@ public class Client
                     System.out.println("Remote exception in update block");
                     r.printStackTrace();
                 }
+            }else if(response==3){
+                current=false;
             }
         }
     }
@@ -129,7 +132,26 @@ public class Client
             }
         }
     }
-
+    public static deleteRating(){
+        Scanner sc=new Scanner(System.in);
+        boolean current=true;
+        while(current){
+            System.out.println("How wil you choose the film rating to delete?");
+            System.out.println("1.by ID");
+            System.out.println("2.by name");
+            int response=sc.nextInt();
+            if(response==1){
+                System.out.println("Enter id:");
+                int id=sc.nextInt();
+                try{
+                    String serverResponse=stub.queryMovie(id);
+                    System.out.println("which users review would you like to delete?");
+                    int userId=sc.nextInt();
+                    
+                }
+            }
+        }
+    }
     public static void sendRating(){
         Scanner sc=new Scanner(System.in);
         boolean current=true;
@@ -174,7 +196,7 @@ public class Client
         }
     }
 
-    public static void updateRating(){
+    /*public static void updateRating(){
         Scanner sc=new Scanner(System.in);
         boolean current=true;
         while(current){
@@ -196,5 +218,5 @@ public class Client
                 name=sc.nextLine();
             }
         }
-    }
+    }*/
 }
