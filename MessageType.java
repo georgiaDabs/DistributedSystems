@@ -1,5 +1,5 @@
 
 public enum MessageType
 {
-    ADD, UPDATE, DELETE
+    ADD, UPDATE, DELETE, ADDMOVIE
 }

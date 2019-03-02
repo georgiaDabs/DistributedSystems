@@ -18,12 +18,38 @@ public class ReplicaManager implements FrontEndInterface
         currentCount=0;
     }
 
+    public Result addMovie(String movieName){
+        try{
+            int mostUpToDate=getMostUpToDate();
+            int id=0;
+            if(mostUpToDate==1){
+                id=current.getNextId();
+                current.addMovie(currentCount,movieName,id);
+                currentCount++;
+            }
+        }catch(RemoteException e){
+            System.out.println("Remote exception in add movie block");
+            return Result.FAILED;
+        }
+        return Result.SUCCESFUL;
+    }
+
+    public int getId(String movieName) throws NotAMovieException{
+        int id=0;
+        try{
+            id=current.getId( movieName);
+        }catch(RemoteException r){
+            System.out.println("remote exception in getting id");
+        }
+        return id;
+    }
+
     public void initiateStubs(){
 
         try {
 
             // Get registry
-            Registry registry = LocateRegistry.getRegistry("mira2.dur.ac.uk", 37008);
+            Registry registry = LocateRegistry.getRegistry("mira1.dur.ac.uk", 37008);
 
             // Lookup the remote object "Hello" from registry
             // and create a stub for itls
@@ -147,7 +173,7 @@ public class ReplicaManager implements FrontEndInterface
 
     public void checkIfUpToDate(){
         System.out.println("current count:"+currentCount);
-        
+
         try{
             boolean server1=current.isUpToDate(currentCount);
             boolean server2=backups.get(0).isUpToDate(currentCount);
@@ -222,45 +248,62 @@ public class ReplicaManager implements FrontEndInterface
         String str="";
         System.out.println("Starting to gossp");
         try{
-        if(checkServerStates()){
-            gossip();
-            try{
-                Movie m=current.getMovie(movieName);
-                str+="Movie Name:"+m.getName()+"\n";
-                str+="Movie ID"+m.getID()+"\n";
-                str+="Average Rating"+m.getAverage()+"\n";
-                str+="Reviews"+m.getAllReviews()+"\n";
-            }catch(NotAMovieException e){
-                str="MovieCould not be found in the server";
-            }catch(RemoteException r){
-                System.err.println("RemoteException at queryMovie");
-                r.printStackTrace();
-            }
-        }else{
-            int mostUpToDate=-1;
-            int highest=0;
-           if(mainConnected){
-               if(current.getCorrectdness()>highest){
-                   mostUpToDate=1;
+            if(checkServerStates()){
+                gossip();
+                try{
+                    Movie m=current.getMovie(movieName);
+                    str+="Movie Name:"+m.getName()+"\n";
+                    str+="Movie ID"+m.getID()+"\n";
+                    str+="Average Rating"+m.getAverage()+"\n";
+                    str+="Reviews"+m.getAllReviews()+"\n";
+                }catch(NotAMovieException e){
+                    str="MovieCould not be found in the server";
+                }catch(RemoteException r){
+                    System.err.println("RemoteException at queryMovie");
+                    r.printStackTrace();
                 }
+            }else{
+                int mostUpToDate=getMostUpToDate();
             }
-            if(secondConnected){
+        }catch(RemoteException a){
+            System.out.println("remote exception in checking states");
+            a.printStackTrace();
+        }
+        return str;
+
+    }
+
+    public int getMostUpToDate(){
+        int mostUpToDate=-1;
+        int highest=0;
+        if(mainConnected){
+            try{
+                if(current.getCorrectdness()>highest){
+                    mostUpToDate=1;
+                }
+            }catch(RemoteException e){
+                System.out.println("remote");
+            }
+        }
+        if(secondConnected){
+            try{
                 if(backups.get(0).getCorrectdness()>highest){
                     mostUpToDate=2;
                 }
-            }
-           if(thirdConnected){
-               if(backups.get(1).getCorrectdness()>highest){
-                   mostUpToDate=3;
-                }
+            }catch(RemoteException e){
+                System.out.println("remote");
             }
         }
-    }catch(RemoteException a){
-        System.out.println("remote exception in checking states");
-       a.printStackTrace();
-    }
-        return str;
-
+        if(thirdConnected){
+            try{
+                if(backups.get(1).getCorrectdness()>highest){
+                    mostUpToDate=3;
+                }
+            }catch(RemoteException e){
+                System.out.println("remote");
+            }
+        }
+        return mostUpToDate;
     }
 
     public String queryMovie(int movieID){

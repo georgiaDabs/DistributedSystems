@@ -23,4 +23,7 @@ public class Message implements Serializable
     public MessageType getType(){
         return this.type;
     }
+    public String getName(){
+        return this.m.getName();
+    }
 }

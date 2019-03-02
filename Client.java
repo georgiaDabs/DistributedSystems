@@ -32,9 +32,11 @@ public class Client
             System.out.println("1. Get Movie Ratings");
             System.out.println("2. Send a Movie Rating");
             System.out.println("3. Update a Movie Rating");
-            System.out.println("4. Exit");
+            System.out.println("4. Delete a Movie Rating");
+            System.out.println("5. Add a Movie for Review");
+            System.out.println("6. Exit");
             int response=sc.nextInt();
-            if(response==4){
+            if(response==6){
                 System.out.println("Thankyou for using the server");
                 running=false;
             }
@@ -44,6 +46,10 @@ public class Client
                 sendRating();
             }else if(response==3){
                 updateRatings();
+            }else if(response==4){
+                deleteRating();
+            }else if(response==5){
+                addMovie();
             }
         }
     }
@@ -132,26 +138,52 @@ public class Client
             }
         }
     }
-    public static deleteRating(){
+
+    public static void deleteFromId(int id){
+        Scanner sc=new Scanner(System.in);
+        try{
+            String serverResponse=stub.queryMovie(id);
+            System.out.println("which users review would you like to delete?");
+            int userId=sc.nextInt();
+            Result r=stub.deleteReview(id,userId);
+            System.out.println(r);
+        }catch(RemoteException e){
+            System.out.println("remote exception in delete block");
+        }catch(NotAMovieException a){
+            System.out.println("not a movie exception thrown");
+        }
+    }
+
+    public static void deleteRating(){
         Scanner sc=new Scanner(System.in);
         boolean current=true;
         while(current){
             System.out.println("How wil you choose the film rating to delete?");
             System.out.println("1.by ID");
             System.out.println("2.by name");
+            System.out.println("3. Back to main menu");
             int response=sc.nextInt();
             if(response==1){
                 System.out.println("Enter id:");
                 int id=sc.nextInt();
+                deleteFromId(id);
+            }else if(response==3){
+                current=false;
+            }else if(response==2){
+                System.out.println("Enter name:");
+                String name=sc.nextLine();
                 try{
-                    String serverResponse=stub.queryMovie(id);
-                    System.out.println("which users review would you like to delete?");
-                    int userId=sc.nextInt();
-                    
+                    int id=stub.getId(name);
+                    deleteFromId(id);
+                }catch(NotAMovieException e){
+                    System.out.println("not a movie exception try again");
+                }catch(RemoteException a){
+                    System.out.println("remote exception getting id");
                 }
             }
         }
     }
+
     public static void sendRating(){
         Scanner sc=new Scanner(System.in);
         boolean current=true;
@@ -181,42 +213,67 @@ public class Client
             }else if(response==2){
                 System.out.println("Please enter the name");
                 name=sc.nextLine();
+                try{
+                    id=stub.getId(name);
+                }catch(NotAMovieException e){
+                    System.out.println("not a movie try again");
+                }catch(RemoteException a){
+                    System.out.println("remote exception");
+                }
             }
-            System.out.println("please enter the user Id");
-            int userId=sc.nextInt();
-            System.out.println("Please Enter the rating as a double");
-            double rating=sc.nextDouble();
-            try{
-                Result r=stub.sendRating(rating,userId,id);
-                System.out.println(r);
-            }catch(RemoteException r){
-                System.out.println("Remot exception in sending review");
-                r.printStackTrace();
+            if(id!=0){
+                System.out.println("please enter the user Id");
+                int userId=sc.nextInt();
+                System.out.println("Please Enter the rating as a double");
+                double rating=sc.nextDouble();
+                try{
+                    Result r=stub.sendRating(rating,userId,id);
+                    System.out.println(r);
+                }catch(RemoteException r){
+                    System.out.println("Remot exception in sending review");
+                    r.printStackTrace();
+                }
             }
         }
     }
-
-    /*public static void updateRating(){
-        Scanner sc=new Scanner(System.in);
+    public static void addMovie(){
         boolean current=true;
+        Scanner sc=new Scanner(System.in);
         while(current){
-            System.out.println("How will you choose the film to update");
-            System.out.println("1. By Movie ID");
-            System.out.println("2. By Movie Name");
-            System.out.println("3. Back To Main Menu");
-            int response=sc.nextInt();
-            int id=0;
-            String name=null;
-            if(response==3){
+            System.out.println("Enter movie name or press 1 to go back to main menu");
+            String name=sc.nextLine();
+            if(name.equals("1")){
                 current=false;
-                break;
-            }else if(response==1){
-                System.out.println("Please enter the id");
-                id=sc.nextInt();
-            }else if(response==2){
-                System.out.println("Please enter the name");
-                name=sc.nextLine();
+            }else{
+                try{
+                    Result r=stub.addMovie(name);
+                }catch(RemoteException r){
+                    System.out.println("remote exception in add block");
+                }
             }
         }
+    }
+    /*public static void updateRating(){
+    Scanner sc=new Scanner(System.in);
+    boolean current=true;
+    while(current){
+    System.out.println("How will you choose the film to update");
+    System.out.println("1. By Movie ID");
+    System.out.println("2. By Movie Name");
+    System.out.println("3. Back To Main Menu");
+    int response=sc.nextInt();
+    int id=0;
+    String name=null;
+    if(response==3){
+    current=false;
+    break;
+    }else if(response==1){
+    System.out.println("Please enter the id");
+    id=sc.nextInt();
+    }else if(response==2){
+    System.out.println("Please enter the name");
+    name=sc.nextLine();
+    }
+    }
     }*/
 }

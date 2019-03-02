@@ -2,6 +2,8 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 public interface FrontEndInterface extends Remote
 {
+    public Result addMovie(String name) throws RemoteException;
+    public int getId(String movieName) throws NotAMovieException, RemoteException;
     public Result sendRating(double rating,int userId, int movieID) throws RemoteException;
     public void initiateStubs() throws RemoteException;
     public String queryMovie(String movieName) throws RemoteException;

@@ -40,7 +40,30 @@ public class Server implements ServerInterface
     public String getName(){
         return this.name;
     }
-
+    public void implementAddMovie(int movieId, String movieName){
+         Movie mov=new Movie(movieId, movieName, 0, "");
+         movies.put(movieId, mov);
+    }
+    public Result addMovie(int count, String movieName, int movieId){
+        if(count==(correctUpto+1)){
+            correctUpto=count;
+        }
+        Result r=Result.FAILED;
+       implementAddMovie(movieId, movieName);
+       Message msg=new Message(new Movie(movieId, movieName, 0, ""),0.0,0,MessageType.ADDMOVIE);
+        queue.put(count,msg);
+        return Result.SUCCESFUL;
+    }
+    public int getNextId(){
+        int next=0;
+        for(Integer i:movies.keySet()){
+            if(i>next){
+                i=next;
+            }
+        }
+        next++;
+        return next;
+    }
     public String updateMovie(int count,int movieId, int userId, double newRating) throws NotAMovieException{
         if(count==(correctUpto+1)){
             correctUpto=count;
@@ -87,7 +110,18 @@ public class Server implements ServerInterface
         }
         return r;
     }
-
+    public int getId(String movieName) throws NotAMovieException{
+        int movieId=-1;
+        for(Integer id:movies.keySet()){
+            if(movies.get(id).getName().equals(movieName)){
+                movieId=id;
+            }
+        }
+        if(movieId==-1){
+            throw new NotAMovieException();
+        }
+        return movieId;
+    }
     public Movie getMovie(String name) throws NotAMovieException{
         System.out.println("looking for movie called:"+name);
         boolean found=false;
@@ -278,6 +312,8 @@ public class Server implements ServerInterface
                 }
             }else if(msg.getType()==MessageType.ADD){
                 implementAdd(msg.getMovieID(), msg.getUserId(), msg.getRating());
+            }else if(msg.getType()==MessageType.ADDMOVIE){
+                implementAddMovie(msg.getMovieID(),msg.getName());
             }
         }
         queue=new HashMap<Integer, Message>();

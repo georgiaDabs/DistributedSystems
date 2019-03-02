@@ -9,4 +9,6 @@ comment3.params=
 comment3.target=double\ getRating()
 comment4.params=
 comment4.target=MessageType\ getType()
-numComments=5
+comment5.params=
+comment5.target=java.lang.String\ getName()
+numComments=6
