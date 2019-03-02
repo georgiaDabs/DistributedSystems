@@ -4,7 +4,9 @@ import java.rmi.RemoteException;
 import java.util.Set;
 public interface ServerInterface extends Remote
     
-{  public int getNextId() throws RemoteException;
+{  public void ping() throws RemoteException;
+    public int getNextId() throws RemoteException;
+   public State changeStateRandomly() throws RemoteException;
     public Result addMovie(int count, String movieName, int movieId) throws RemoteException;
     public int getId(String movieName) throws NotAMovieException, RemoteException;
     public void startCount() throws RemoteException;

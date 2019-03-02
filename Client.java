@@ -27,34 +27,61 @@ public class Client
 
         boolean running =true;
         while(running){
-
-            System.out.println("Welcome to the Movie Ratings Server press the key of what you'd like to do");
-            System.out.println("1. Get Movie Ratings");
-            System.out.println("2. Send a Movie Rating");
-            System.out.println("3. Update a Movie Rating");
-            System.out.println("4. Delete a Movie Rating");
-            System.out.println("5. Add a Movie for Review");
-            System.out.println("6. Exit");
-            int response=sc.nextInt();
-            if(response==6){
-                System.out.println("Thankyou for using the server");
-                running=false;
-            }
-            if(response==1){
-                getRating();
-            }else if(response==2){
-                sendRating();
-            }else if(response==3){
-                updateRatings();
-            }else if(response==4){
-                deleteRating();
-            }else if(response==5){
-                addMovie();
+            try{
+                System.out.println("Welcome to the Movie Ratings Server press the key of what you'd like to do");
+                System.out.println("1. Get Movie Ratings");
+                System.out.println("2. Send a Movie Rating");
+                System.out.println("3. Update a Movie Rating");
+                System.out.println("4. Delete a Movie Rating");
+                System.out.println("5. Add a Movie for Review");
+                System.out.println("6. Exit");
+                int response=sc.nextInt();
+                if(response==6){
+                    System.out.println("Thankyou for using the server");
+                    running=false;
+                }
+                if(response==1){
+                    getRating();
+                }else if(response==2){
+                    sendRating();
+                }else if(response==3){
+                    updateRatings();
+                }else if(response==4){
+                    deleteRating();
+                }else if(response==5){
+                    addMovie();
+                }
+            }catch(NoneOnlineException e){
+                boolean waitLoop=true;
+                while(waitLoop){
+                    System.out.println(e.getTime());
+                    System.out.println("would you like to wait for a server to come back online or exit?");
+                    System.out.println("1. wait");
+                    System.out.println("2. exit");
+                    int errorResponse=sc.nextInt();
+                    if(errorResponse==1){
+                        try{
+                            try{
+                                stub.testToSeeOnline();
+                                stub.changeStates();
+                            }catch(RemoteException r){
+                                System.out.println("Remote Exceptio thrown when waiting for states to change");
+                            }
+                            waitLoop=false;
+                        }catch(NoneOnlineException a){
+                            System.out.println("Still offline");
+                        }
+                    }else if(errorResponse==2){
+                        waitLoop=false;
+                        running=false;
+                    }
+                }
             }
         }
+
     }
 
-    public static void updateRatings(){
+    public static void updateRatings() throws NoneOnlineException{
         Scanner sc=new Scanner(System.in);
         boolean current=true;
         while(current){
@@ -96,16 +123,17 @@ public class Client
         }
     }
 
-    public static void getRating(){
+    public static void getRating() throws NoneOnlineException{
         Scanner sc=new Scanner(System.in);
         boolean current=true;
+        int response;
         while(current){
             System.out.println("How would you like to get the rating");
             System.out.println("1. By Movie ID");
             System.out.println("2. By Movie Name");
             System.out.println("3. Back To Main Menu");
-            int response;
-            try{
+            
+           if(sc.hasNextInt()){
                 response=sc.nextInt();
                 if(response==3){
                     current=false;
@@ -133,13 +161,14 @@ public class Client
                         e.printStackTrace();
                     }
                 }
-            }catch(InputMismatchException i){
+            }else{
+                sc.next();
                 System.out.println("Not a number try again");
             }
         }
     }
 
-    public static void deleteFromId(int id){
+    public static void deleteFromId(int id) throws NoneOnlineException{
         Scanner sc=new Scanner(System.in);
         try{
             String serverResponse=stub.queryMovie(id);
@@ -154,7 +183,7 @@ public class Client
         }
     }
 
-    public static void deleteRating(){
+    public static void deleteRating() throws NoneOnlineException{
         Scanner sc=new Scanner(System.in);
         boolean current=true;
         while(current){
@@ -236,6 +265,7 @@ public class Client
             }
         }
     }
+
     public static void addMovie(){
         boolean current=true;
         Scanner sc=new Scanner(System.in);

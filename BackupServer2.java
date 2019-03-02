@@ -13,7 +13,7 @@ public class BackupServer2
     static Registry registry;
     public static void main(String[] args){
         try{
-            Server obj=new Server("MovieRating3");
+            Server obj=new Server("MovieRating3",0.1,0.5);
             //obj.changeState(State.OVERLOADED);
             ServerInterface stub = (ServerInterface) UnicastRemoteObject.exportObject(obj, 0);
 

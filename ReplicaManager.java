@@ -18,6 +18,33 @@ public class ReplicaManager implements FrontEndInterface
         currentCount=0;
     }
 
+    public void changeStates() throws NoneOnlineException{
+        try{
+            State state1=current.changeStateRandomly();
+            State state2=backups.get(0).changeStateRandomly();
+            State state3=backups.get(1).changeStateRandomly();
+            if((state1!=State.ACTIVE)&&(state2!=State.ACTIVE)&&(state3!=State.ACTIVE)){
+                throw new NoneOnlineException();
+            }else if(state1!=State.ACTIVE){
+                System.out.println("current is:"+state1);
+                if(state2==State.ACTIVE){
+                    System.out.println("changing to backup 1");
+                    ServerInterface temp=current;
+                    current=backups.get(0);
+                    backups.set(0,current);
+                }else{
+                    System.out.println("changing to backup 2");
+                    ServerInterface temp=current;
+                    current=backups.get(1);
+                    backups.set(1,current);
+                }
+
+            }
+        }catch(RemoteException e){
+            System.out.println("Remote exception when changing states");
+        }
+    }
+
     public Result addMovie(String movieName){
         try{
             int mostUpToDate=getMostUpToDate();
@@ -44,7 +71,7 @@ public class ReplicaManager implements FrontEndInterface
         return id;
     }
 
-    public void initiateStubs(){
+    public void initiateStubs() throws RemoteException{
 
         try {
 
@@ -86,13 +113,20 @@ public class ReplicaManager implements FrontEndInterface
             }
         } catch (Exception e) {
             System.err.println("Client exception: " + e.toString());
-            e.printStackTrace();
+            //e.printStackTrace();
+        }
+        if(!mainConnected&&!secondConnected&&!thirdConnected){
+            throw new RemoteException();
         }
     }
 
     public boolean checkServerStates() throws RemoteException{
         boolean atLeast1=false;
         boolean all=true;
+        try{
+            current.ping();
+            backups.get(0).ping();
+            backups.get(1).ping();
         if(mainConnected&&secondConnected&&thirdConnected){
             if(current.getState()==State.OVERLOADED||current.getState()==State.OFFLINE){
                 System.out.println("Replica 1 isn't available");
@@ -125,6 +159,9 @@ public class ReplicaManager implements FrontEndInterface
             if(!atLeast1){
                 System.out.println("no servers are working");
             }}else{return false;}
+        }catch(RemoteException offline){
+            return false;
+        }
         return all;
     }
     static Registry registry;
@@ -195,8 +232,8 @@ public class ReplicaManager implements FrontEndInterface
 
     }
 
-    public void gossip(){
-
+    public void gossip() throws NoneOnlineException{
+        
         try{
             if(checkServerStates()){
 
@@ -208,15 +245,49 @@ public class ReplicaManager implements FrontEndInterface
                 current.update();
                 backups.get(0).update();
                 backups.get(1).update();
+                currentCount=0;
                 System.out.println("Current up to date:"+current.isUpToDate(currentCount));
                 System.out.println("backup1 up to date:"+backups.get(0).isUpToDate(currentCount));
                 System.out.println("backup2 up to date:"+backups.get(1).isUpToDate(currentCount));
                 System.out.println("gossiping succesful");
+            }else{
+                boolean server1=false;
+                try{
+                    current.ping();
+                    server1=true;
+                }catch(RemoteException e){
+                    System.out.println("server 1 down");
+                }
+                boolean server2=false;
+                try{
+                    backups.get(0).ping();
+                    server2=true;
+                }catch(RemoteException e){
+                    System.out.println("server 2 down");
+                }
+                boolean server3=false;
+                try{
+                    backups.get(1).ping();
+                    server3=true;
+                }catch(RemoteException e){
+                    System.out.println("server 3 down");
+                }
+                if(server1&&server2){
+                    current.gossipWith(backups.get(0));
+                }
+                if(server1&&server2){
+                    current.gossipWith(backups.get(1));
+                }
+                if(server2&&server3){
+                    backups.get(0).gossipWith(backups.get(1));
+                }
+                testToSeeOnline();
             }
         }catch(RemoteException e){
             System.out.println("Remote Exception at gossip function");
 
         }
+    
     }
 
     public String getMovieForReview(int id) throws NotAMovieException{
@@ -244,7 +315,7 @@ public class ReplicaManager implements FrontEndInterface
         return response;
     }
 
-    public String queryMovie(String movieName){
+    public String queryMovie(String movieName) throws NoneOnlineException{
         String str="";
         System.out.println("Starting to gossp");
         try{
@@ -269,6 +340,10 @@ public class ReplicaManager implements FrontEndInterface
             System.out.println("remote exception in checking states");
             a.printStackTrace();
         }
+
+        changeStates();
+
+    
         return str;
 
     }
@@ -306,7 +381,7 @@ public class ReplicaManager implements FrontEndInterface
         return mostUpToDate;
     }
 
-    public String queryMovie(int movieID){
+    public String queryMovie(int movieID) throws NoneOnlineException{
         String str="";
         System.out.println("Starting to gossp");
 
@@ -322,6 +397,7 @@ public class ReplicaManager implements FrontEndInterface
         }catch(RemoteException r){
             System.err.println("RemoteException at queryMovie");
             r.printStackTrace();
+            testToSeeOnline();
         }
         System.out.println("returning query about movie:"+movieID);
         return str;
@@ -338,5 +414,30 @@ public class ReplicaManager implements FrontEndInterface
             e.printStackTrace();
         }
         return r;
+    }
+    public void testToSeeOnline() throws NoneOnlineException{
+        try{
+            current.ping();
+        }catch(RemoteException firstOff){
+            System.out.println("current offline");
+            try{
+                backups.get(0).ping();
+                ServerInterface temp=current;
+                current=backups.get(0);
+                backups.set(0,temp);
+            }catch(RemoteException secondOff){
+                try{
+                backups.get(1).ping();
+                ServerInterface temp=current;
+                current=backups.get(1);
+                backups.set(1,temp);
+            }catch(RemoteException thirdOff){
+                try{
+                    initiateStubs();
+                }catch(RemoteException e){
+                throw new NoneOnlineException();}
+            }
+            }
+        }
     }
 }

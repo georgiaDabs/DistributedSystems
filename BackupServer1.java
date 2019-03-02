@@ -13,7 +13,7 @@ public class BackupServer1
    static Registry registry;
     public static void main(String[] args){
         try{
-            Server obj=new Server("MovieRating2");
+            Server obj=new Server("MovieRating2",0.05,0.01);
             ServerInterface stub = (ServerInterface) UnicastRemoteObject.exportObject(obj, 0);
 
             // Get registry

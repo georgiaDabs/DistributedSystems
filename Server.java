@@ -96,6 +96,7 @@ public class Server implements ServerInterface
             r=implementDelete( movieId,  userId);
             Message msg=new Message(movies.get(movieId), 0.0, userId,MessageType.DELETE);
             queue.put(count,msg);
+            System.out.println("count should now be :"+queue.size());
         }else{
             throw new NotAMovieException();
         }
@@ -103,6 +104,7 @@ public class Server implements ServerInterface
     }
 
     public Result implementDelete(int movieId,int userId) throws NotAMovieException{
+        System.out.println("deleting user:"+userId+" review of movie:"+movieId+"from this server");
         Result r=Result.FAILED;
         if(movies.containsKey(movieId)){
             r=movies.get(movieId).deleteReview(userId);
@@ -252,9 +254,12 @@ public class Server implements ServerInterface
             e.printStackTrace();
         }
     }
-
-    public Server(String name){
+    private double overLoadProb;
+    private double offlineProb;
+    public Server(String name, double overLoadProb, double offlineProb){
         correctUpto=0;
+        this.overLoadProb=overLoadProb;
+        this.offlineProb=offlineProb;
         this.name=name;
         this.state=State.ACTIVE;
         movies=new HashMap<Integer,Movie>();
@@ -301,26 +306,29 @@ public class Server implements ServerInterface
     }
 
     public void update(){
-        for(Message msg:queue.values()){
-            if(msg.getType()==MessageType.UPDATE){
-                implementUpdate(msg.getMovieID(), msg.getUserId(), msg.getRating());
-            }else if(msg.getType()==MessageType.DELETE){
+        for(int i=0;i<correctUpto;i++){
+            if(queue.get(i).getType()==MessageType.UPDATE){
+                implementUpdate(queue.get(i).getMovieID(), queue.get(i).getUserId(), queue.get(i).getRating());
+            }else if(queue.get(i).getType()==MessageType.DELETE){
                 try{
-                    implementDelete(msg.getMovieID(),msg.getUserId());
+                    implementDelete(queue.get(i).getMovieID(),queue.get(i).getUserId());
                 }catch(NotAMovieException e){
                     System.out.println("Not a movie thrown in update section VERY BAD");
                 }
-            }else if(msg.getType()==MessageType.ADD){
-                implementAdd(msg.getMovieID(), msg.getUserId(), msg.getRating());
-            }else if(msg.getType()==MessageType.ADDMOVIE){
-                implementAddMovie(msg.getMovieID(),msg.getName());
+            }else if(queue.get(i).getType()==MessageType.ADD){
+                implementAdd(queue.get(i).getMovieID(), queue.get(i).getUserId(), queue.get(i).getRating());
+            }else if(queue.get(i).getType()==MessageType.ADDMOVIE){
+                implementAddMovie(queue.get(i).getMovieID(),queue.get(i).getName());
             }
         }
         queue=new HashMap<Integer, Message>();
     }
-
+    public void ping(){
+        System.out.println("PING");
+    }
     public boolean isUpToDate(int i){
         System.out.println("request made to see if up to date");
+        System.out.println("Managers count:"+i+"this servers count"+queue.size());
         return (queue.size()==i);
     }
     public int getCorrectdness(){
@@ -402,13 +410,24 @@ public class Server implements ServerInterface
         return Result.FAILED;
     }*/
     static Registry registry;
+    public State changeStateRandomly(){
+        if(Math.random()<offlineProb){
+            this.state=State.OFFLINE;
+            return this.state;
+        }else if(Math.random()<overLoadProb){
+            this.state=State.OVERLOADED;
+            return this.state;
+        }
+        return this.state=State.ACTIVE;
+        
+    }
     public static void main(String[] args){
         try{
-            Server obj=new Server("MovieRating1");
+            Server obj=new Server("MovieRating1",0.01,0.05);
             ServerInterface stub = (ServerInterface) UnicastRemoteObject.exportObject(obj, 0);
 
             // Get registry
-            registry = LocateRegistry.createRegistry(37008);
+            registry = LocateRegistry.getRegistry(37008);
             try{
                 registry.bind("MovieRating1",stub);
             }catch(AlreadyBoundException a){
