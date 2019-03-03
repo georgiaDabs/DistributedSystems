@@ -129,7 +129,7 @@ public class Server implements ServerInterface
         boolean found=false;
         Movie movie=null;
         for(Movie m:movies.values()){
-            if(m.getName().equals(name)){
+            if(m.getName().contains(name)){
                 movie=m;
                 found=true;
                 System.out.println("Found film at id:"+m.getID());
@@ -427,7 +427,7 @@ public class Server implements ServerInterface
             ServerInterface stub = (ServerInterface) UnicastRemoteObject.exportObject(obj, 0);
 
             // Get registry
-            registry = LocateRegistry.getRegistry(37008);
+            registry = LocateRegistry.createRegistry(37008);
             try{
                 registry.bind("MovieRating1",stub);
             }catch(AlreadyBoundException a){

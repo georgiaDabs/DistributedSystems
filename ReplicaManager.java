@@ -76,7 +76,7 @@ public class ReplicaManager implements FrontEndInterface
         try {
 
             // Get registry
-            Registry registry = LocateRegistry.getRegistry("mira1.dur.ac.uk", 37008);
+            Registry registry = LocateRegistry.getRegistry("mira2.dur.ac.uk", 37008);
 
             // Lookup the remote object "Hello" from registry
             // and create a stub for itls

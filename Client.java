@@ -11,7 +11,7 @@ public class Client
         try {
 
             // Get registry
-            Registry registry = LocateRegistry.getRegistry("mira1.dur.ac.uk", 37009);
+            Registry registry = LocateRegistry.getRegistry("mira2.dur.ac.uk", 37009);
 
             // Lookup the remote object "Hello" from registry
             // and create a stub for it
@@ -200,6 +200,7 @@ public class Client
                 current=false;
             }else if(response==2){
                 System.out.println("Enter name:");
+                sc.nextLine();
                 String name=sc.nextLine();
                 try{
                     int id=stub.getId(name);
